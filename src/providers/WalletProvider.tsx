@@ -1,12 +1,11 @@
 'use client'
 
 import React from 'react'
+import { BigNumber, ethers } from 'ethers'
 import { useWeb3React } from '@web3-react/core'
-import { Web3Provider } from '@ethersproject/providers'
 import { InjectedConnector } from '@web3-react/injected-connector'
-import { Signer } from 'ethers'
 import useMetamask from '@/hooks/useMetamask'
-import web3 from 'web3'
+import { Web3Provider } from '@ethersproject/providers'
 
 type WalletContextType = {
   account: string | null | undefined,
@@ -15,7 +14,7 @@ type WalletContextType = {
   connect: (chainId?: number) => void,
   disconnect: () => void,
   provider: Web3Provider | undefined,
-  signer: Signer | undefined
+  signer: ethers.Signer | undefined
 }
 
 export const WalletContext = React.createContext<WalletContextType>({} as WalletContextType)
@@ -28,14 +27,14 @@ const WalletProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) 
   const connect = async (chainId: number = 1) => {
     if (typeof window === undefined || !ethereum) return
 
-    console.log({ chainHex: web3.utils.toHex(chainId) })
+    console.log({ chainHex: ethers.utils.hexValue(BigNumber.from(chainId).toHexString()) })
 
     if (ethereum.networkVersion != String(chainId)) {
       // if it encounters an error with the code of 4902 (network not yet added), it means the network is not yet added to metamask, in that case, we will use wallet_addEthereumChain
       try {
         await ethereum.request({
           method: 'wallet_switchEthereumChain',
-          params: [{ chainId: web3.utils.toHex(chainId) }]
+          params: [{ chainId: ethers.utils.hexValue(BigNumber.from(chainId).toHexString()) }]
         })
       }
       catch (err: any) {
@@ -46,7 +45,7 @@ const WalletProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) 
                 method: 'wallet_addEthereumChain',
                 params: [{
                   chainName: 'Binance Smart Chain',
-                  chainId: web3.utils.toHex(chainId),
+                  chainId: ethers.utils.hexValue(BigNumber.from(chainId).toHexString()),
                   nativeCurrency: { name: 'Binance Smart Chain', decimals: 18, symbol: 'BNB' },
                   rpcUrls: ['https://bsc-dataseed.binance.org/']
                 }]
@@ -57,7 +56,7 @@ const WalletProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) 
                 method: 'wallet_addEthereumChain',
                 params: [{
                   chainName: 'Polygon Network',
-                  chainId: web3.utils.toHex(chainId),
+                  chainId: ethers.utils.hexValue(BigNumber.from(chainId).toHexString()),
                   nativeCurrency: { name: 'MATIC', decimals: 18, symbol: 'MATIC' },
                   rpcUrls: ['https://polygon-rpc.com/']
                 }]
